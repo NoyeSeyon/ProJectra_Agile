@@ -1,0 +1,320 @@
+{
+  "info": {
+    "name": "Admin API - Project Management",
+    "description": "API collection for Admin role endpoints - PM management and user administration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001/api",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('adminToken', response.token);",
+                  "    console.log('Admin token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as admin user to get authentication token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get Organization Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data.length > 0) {",
+                  "        pm.collectionVariables.set('userId', response.data[0]._id);",
+                  "        console.log('User ID saved:', response.data[0]._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?role=member&isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "member",
+                  "description": "Filter by role"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Search by name or email"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Invite New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"role\": \"member\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "invite"]
+            }
+          }
+        },
+        {
+          "name": "Change User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"project_manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{userId}}", "role"]
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{userId}}", "status"]
+            },
+            "description": "Activate or deactivate a user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PM Management",
+      "item": [
+        {
+          "name": "Assign User as PM",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"maxProjects\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/assign-pm",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "assign-pm"]
+            }
+          }
+        },
+        {
+          "name": "Get All PMs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pms",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "pms"]
+            }
+          }
+        },
+        {
+          "name": "Update PM Capacity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxProjects\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/pm/{{userId}}/capacity",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "pm", "{{userId}}", "capacity"]
+            }
+          }
+        },
+        {
+          "name": "Get PM's Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pm/{{userId}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "pm", "{{userId}}", "projects"]
+            }
+          }
+        },
+        {
+          "name": "Remove PM Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/unassign-pm/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "unassign-pm", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Organization Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

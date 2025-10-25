@@ -1,0 +1,321 @@
+/* Unified Badge System */
+/* This file provides consistent badge styling across all components */
+
+/* Base Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+/* Role Badges */
+.badge-team-leader {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-member {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+.badge-pm {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  color: #3730a3;
+  border: 1px solid #818cf8;
+}
+
+.badge-admin {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  color: #6b21a8;
+  border: 1px solid #a78bfa;
+}
+
+.badge-super-admin {
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+  color: #9f1239;
+  border: 1px solid #f472b6;
+}
+
+.badge-client {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+/* Status Badges */
+.badge-active {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.badge-planning {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+.badge-on_hold,
+.badge-paused {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-completed {
+  background: #e5e7eb;
+  color: #374151;
+  border: 1px solid #9ca3af;
+}
+
+.badge-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Specialization Badges */
+.badge-specialization {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  color: #0f766e;
+  border: 1px solid #5eead4;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  text-transform: capitalize;
+}
+
+.badge-specialization.ui-ux {
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+  color: #9f1239;
+  border: 1px solid #f472b6;
+}
+
+.badge-specialization.software-engineer {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+.badge-specialization.qa-engineer {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-specialization.devops {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  color: #3730a3;
+  border: 1px solid #818cf8;
+}
+
+/* Priority Badges */
+.badge-priority-critical {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 1px solid #f87171;
+  animation: pulseCritical 2s infinite;
+}
+
+@keyframes pulseCritical {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+.badge-priority-high {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  color: #9a3412;
+  border: 1px solid #fb923c;
+}
+
+.badge-priority-medium {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-priority-low {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+/* Story Points Badges (Fibonacci) */
+.badge-story-points {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  color: #6b21a8;
+  border: 1px solid #a78bfa;
+  font-weight: 700;
+  min-width: 32px;
+  justify-content: center;
+}
+
+.badge-story-points.points-1,
+.badge-story-points.points-2 {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.badge-story-points.points-3,
+.badge-story-points.points-5 {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+.badge-story-points.points-8,
+.badge-story-points.points-13 {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-story-points.points-21,
+.badge-story-points.points-34,
+.badge-story-points.points-55,
+.badge-story-points.points-89 {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+/* Complexity/Weight Badges */
+.badge-complexity-light {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.badge-complexity-medium {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-complexity-heavy {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+/* Budget Alert Badges */
+.badge-budget-good {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.badge-budget-warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.badge-budget-critical {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 1px solid #f87171;
+  animation: pulseCritical 2s infinite;
+}
+
+/* Interactive Badges */
+.badge.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.badge.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge.clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Badge with Icon */
+.badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Badge Size Variants */
+.badge-sm {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+}
+
+.badge-lg {
+  padding: 0.375rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Badge Animations */
+@keyframes badgeFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge {
+  animation: badgeFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Badge Group */
+.badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Removable Badge */
+.badge-removable {
+  padding-right: 0.375rem;
+}
+
+.badge-remove-btn {
+  margin-left: 0.25rem;
+  padding: 0.125rem;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.badge-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.badge-remove-btn svg {
+  width: 10px;
+  height: 10px;
+}
+

@@ -1,0 +1,61 @@
+/* Layout specific styles - 25/75 Split Layout */
+.layout-main-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  line-height: 0 !important;
+  width: 100%;
+  min-height: calc(100vh - 64px);
+}
+
+.layout-main-content > * {
+  line-height: normal;
+  margin-top: 0 !important;
+}
+
+.layout-main-content > *:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Remove any spacing at the top */
+header {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Sidebar styles - 25% width on desktop */
+.lg\:flex-shrink-0 {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+}
+
+@media (min-width: 1024px) {
+  .lg\:w-1\/4 {
+    width: 15% !important;
+  }
+  
+  .lg\:w-3\/4 {
+    width: 85% !important;
+    margin-left: 15% !important;
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 1024px) {
+  .layout-main-content {
+    padding: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout-main-content {
+    min-height: calc(100vh - 64px);
+  }
+}
+

@@ -1,0 +1,149 @@
+/* Burndown Chart */
+.burndown-chart {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.chart-legend-info {
+  display: flex;
+  gap: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-dot.actual {
+  background: #3b82f6;
+}
+
+.legend-dot.ideal {
+  background: #10b981;
+}
+
+.chart-empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+}
+
+.chart-empty-state p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Enhanced Chart Animations */
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.burndown-chart {
+  animation: chartFadeIn 0.5s ease;
+}
+
+.legend-item {
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.legend-item:hover {
+  transform: translateY(-2px);
+}
+
+.legend-dot {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.legend-item:hover .legend-dot {
+  transform: scale(1.3);
+}
+
+/* Loading State */
+.burndown-chart.loading {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-loader {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Data Point Hover Effect */
+.apexcharts-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chart-legend-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
