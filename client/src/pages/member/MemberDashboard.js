@@ -212,11 +212,16 @@ const MemberDashboard = () => {
             <CheckSquare size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-value">{stats.mainTasks || 0}</div>
+            <div className="stat-value">{stats.totalActiveTasks || stats.mainTasks || 0}</div>
             <div className="stat-label">Active Tasks</div>
             <div className="stat-meta">
               <TrendingUp size={14} />
-              <span>Across all projects</span>
+              <span>
+                {stats.mainTasks > 0 && stats.assignedSubtasks > 0 
+                  ? `${stats.mainTasks} main + ${stats.assignedSubtasks} subtasks`
+                  : 'Across all projects'
+                }
+              </span>
             </div>
           </div>
         </div>

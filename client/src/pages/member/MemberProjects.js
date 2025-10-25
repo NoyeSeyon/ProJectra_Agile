@@ -370,7 +370,7 @@ const MemberProjects = () => {
                   </span>
 
                   <div className="card-actions">
-                    <Link to={`/member/tasks?project=${project._id}`} className="btn-view">
+                    <Link to="/member/tasks" className="btn-view">
                       View Tasks
                     </Link>
                   </div>

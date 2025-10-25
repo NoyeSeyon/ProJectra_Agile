@@ -256,7 +256,12 @@ router.put('/:taskId', authenticate, checkOrganization, [
     }
 
     // Check permission
-    if (!req.user.hasPermission('tasks', 'update')) {
+    // Allow assignees to update status, or users with full task update permission
+    const isAssignee = task.assignee && task.assignee.toString() === req.user._id.toString();
+    const hasFullPermission = req.user.hasPermission('tasks', 'update');
+    const isStatusOnlyUpdate = Object.keys(req.body).length === 1 && req.body.status;
+    
+    if (!hasFullPermission && !(isAssignee && isStatusOnlyUpdate)) {
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions to update tasks'

@@ -27,6 +27,11 @@ router.get('/tasks/:projectId', teamLeaderController.getMainTasks);
 // @access  Private (Team Leader/Member)
 router.get('/my-tasks', teamLeaderController.getMyTasks);
 
+// @route   GET /api/team-leader/subtasks
+// @desc    Get all subtasks created by Team Leader
+// @access  Private (Team Leader)
+router.get('/subtasks', teamLeaderController.getCreatedSubtasks);
+
 // @route   POST /api/team-leader/subtasks
 // @desc    Create subtasks from main task
 // @access  Private (Team Leader/Member)

@@ -52,24 +52,38 @@ const TaskForm = ({ task, onSubmit, onClose }) => {
       console.log('🔄 Loading projects for user:', user?.role);
       
       let response;
+      let projectList = [];
+      
       if (user?.role === 'pm' || user?.role === 'project_manager') {
         // PM: Get their managed projects
         response = await axios.get('/api/pm/projects');
-        // Backend returns data.data.projects (nested data object)
-        const projects = response.data.data?.projects || response.data.projects || [];
-        console.log('✅ PM Projects loaded:', projects.length);
-        setProjects(projects);
-      } else if (user?.role === 'member' || user?.role === 'team_leader') {
-        // Member/TL: Get assigned projects
+        projectList = response.data.data?.projects || response.data.projects || [];
+        console.log('✅ PM Projects loaded:', projectList.length);
+      } else if (user?.role === 'team_leader') {
+        // Team Leader: Get assigned projects
         response = await axios.get('/api/team-leader/projects');
-        console.log('✅ Member Projects loaded:', response.data.projects?.length || 0);
-        setProjects(response.data.projects || []);
+        const allProjects = response.data.data?.projects || response.data.projects || [];
+        
+        // Filter to show ONLY projects where user is Team Leader
+        projectList = allProjects.filter(project => {
+          const teamLeaderId = project.teamLeader?._id || project.teamLeader;
+          return teamLeaderId && teamLeaderId.toString() === user._id.toString();
+        });
+        
+        console.log('✅ Team Leader Projects (filtered):', projectList.length, 'out of', allProjects.length);
+      } else if (user?.role === 'member') {
+        // Member: Cannot create tasks, but show all projects for viewing
+        response = await axios.get('/api/team-leader/projects');
+        projectList = response.data.data?.projects || response.data.projects || [];
+        console.log('✅ Member Projects loaded:', projectList.length);
       } else if (user?.role === 'admin' || user?.role === 'super_admin') {
         // Admin: Get all organization projects
         response = await axios.get('/api/projects');
-        console.log('✅ Admin Projects loaded:', response.data?.projects?.length || 0);
-        setProjects(response.data?.projects || []);
+        projectList = response.data?.projects || [];
+        console.log('✅ Admin Projects loaded:', projectList.length);
       }
+      
+      setProjects(projectList);
     } catch (err) {
       console.error('❌ Failed to load projects:', err);
     }
@@ -79,23 +93,42 @@ const TaskForm = ({ task, onSubmit, onClose }) => {
     try {
       console.log('🔄 Loading members for project:', projectId);
       
-      let response;
+      // Find the selected project
+      const selectedProject = projects.find(p => p._id === projectId);
+      
+      if (!selectedProject) {
+        console.error('❌ Project not found:', projectId);
+        setUsers([]);
+        return;
+      }
+      
+      let membersList = [];
+      
       if (user?.role === 'pm' || user?.role === 'project_manager') {
         // PM: Get available members
-        response = await axios.get(`/api/pm/available-members`);
-        console.log('✅ PM Members loaded:', response.data.data?.length || 0);
-        setUsers(response.data.data || []);
+        const response = await axios.get(`/api/pm/available-members`);
+        membersList = response.data.data || [];
       } else if (user?.role === 'admin' || user?.role === 'super_admin') {
         // Admin: Get all users
-        response = await axios.get('/api/admin/users', { params: { role: 'member,team_leader' } });
-        console.log('✅ Admin Users loaded:', response.data.users?.length || 0);
-        setUsers(response.data.users || []);
-      } else {
-        // Member/TL: Get project members
-        response = await axios.get(`/api/team-leader/projects/${projectId}/members`);
-        console.log('✅ Project Members loaded:', response.data.members?.length || 0);
-        setUsers(response.data.members || []);
+        const response = await axios.get('/api/admin/users', { params: { role: 'member,team_leader' } });
+        membersList = response.data.users || [];
+      } else if (user?.role === 'team_leader') {
+        // Team Leader: Get only members from selected project (exclude Team Leader)
+        if (selectedProject.members && Array.isArray(selectedProject.members)) {
+          // Filter to show only members, exclude team leader
+          const teamLeaderId = selectedProject.teamLeader?._id || selectedProject.teamLeader;
+          
+          membersList = selectedProject.members
+            .map(m => m.user || m)
+            .filter(member => {
+              const memberId = member._id || member;
+              return memberId.toString() !== teamLeaderId?.toString();
+            });
+        }
       }
+      
+      console.log('✅ Project Members loaded:', membersList.length, '(Team Leader excluded)');
+      setUsers(membersList);
     } catch (err) {
       console.error('❌ Failed to load users:', err);
       setUsers([]);
@@ -114,6 +147,19 @@ const TaskForm = ({ task, onSubmit, onClose }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Date validation
+    if (formData.dueDate) {
+      const dueDate = new Date(formData.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (dueDate < today) {
+        setError('Due date cannot be in the past');
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       await onSubmit(formData);
@@ -249,8 +295,10 @@ const TaskForm = ({ task, onSubmit, onClose }) => {
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleChange}
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                <p className="text-xs text-gray-500 mt-1">Due date cannot be in the past</p>
               </div>
             </div>
           </div>

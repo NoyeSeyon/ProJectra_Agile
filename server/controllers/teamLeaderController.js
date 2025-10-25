@@ -45,9 +45,16 @@ exports.getDashboard = async (req, res) => {
       assignee: userId
     }).populate('assignee', 'firstName lastName');
 
+    // Get subtasks ASSIGNED TO this user (for members and TLs)
+    const assignedSubtasks = await Task.find({
+      project: { $in: allProjectIds },
+      isSubtask: true,
+      assignee: userId
+    }).populate('assignee', 'firstName lastName');
+
     // Get subtasks created by this user (if TL)
     const tlProjectIds = tlProjects.map(p => p._id);
-    const subtasks = await Task.find({
+    const subtasksCreated = await Task.find({
       project: { $in: tlProjectIds },
       isSubtask: true,
       reporter: userId
@@ -74,6 +81,9 @@ exports.getDashboard = async (req, res) => {
       ]
     }).populate('project', 'name');
 
+    // Calculate total active tasks (main tasks + assigned subtasks)
+    const totalActiveTasks = mainTasks.length + assignedSubtasks.length;
+    
     res.json({
       success: true,
       data: {
@@ -81,13 +91,15 @@ exports.getDashboard = async (req, res) => {
           projectsAsTeamLeader: tlProjects.length,
           totalProjects: allProjects.length,
           mainTasks: mainTasks.length,
-          subtasksCreated: subtasks.length,
+          assignedSubtasks: assignedSubtasks.length,
+          totalActiveTasks: totalActiveTasks, // New field for dashboard
+          subtasksCreated: subtasksCreated.length,
           teamSize: uniqueTeamMembers.size,
           tasksNeedingBreakdown: tasksNeedingBreakdown.length
         },
         projects: allProjects,
         tasksNeedingBreakdown,
-        recentSubtasks: subtasks.slice(0, 5)
+        recentSubtasks: subtasksCreated.slice(0, 5)
       }
     });
   } catch (error) {
@@ -207,7 +219,7 @@ exports.getMyTasks = async (req, res) => {
     })
       .populate('assignee', 'firstName lastName email specialization')
       .populate('reporter', 'firstName lastName')
-      .populate('project', 'name')
+      .populate('project', 'name teamLeader settings')  // Include teamLeader and settings for permission check
       .populate('mainTask', 'title')
       .populate({
         path: 'subtasks',
@@ -227,6 +239,42 @@ exports.getMyTasks = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Get my tasks error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Get all subtasks created by Team Leader
+exports.getCreatedSubtasks = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const orgId = req.user.organization;
+
+    console.log('🔍 Fetching subtasks created by TL:', userId);
+
+    // Get all subtasks where user is the reporter (creator)
+    const subtasks = await Task.find({
+      organization: orgId,
+      reporter: userId,
+      isSubtask: true
+    })
+      .populate('assignee', 'firstName lastName email specialization')
+      .populate('reporter', 'firstName lastName')
+      .populate('project', 'name teamLeader settings')
+      .populate('mainTask', 'title')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ Found ${subtasks.length} subtasks created by TL`);
+
+    res.json({
+      success: true,
+      data: { subtasks }
+    });
+  } catch (error) {
+    console.error('❌ Get created subtasks error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',

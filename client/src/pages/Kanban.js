@@ -79,6 +79,41 @@ const Kanban = () => {
     };
   }, [connected, onTaskUpdated, onCardMoved, user]);
 
+  // Check if user can create tasks
+  const canCreateTasks = () => {
+    if (!user) return false;
+    
+    // PMs and Admins can always create tasks
+    if (user.role === 'pm' || user.role === 'project_manager' || 
+        user.role === 'admin' || user.role === 'super_admin') {
+      return true;
+    }
+    
+    // Team Leaders can create tasks only if at least one project allows it
+    if (user.role === 'team_leader') {
+      const hasPermission = projects.some(project => {
+        const isTeamLeader = project.teamLeader?._id === user._id || 
+                            project.teamLeader === user._id;
+        const subtasksAllowed = project.settings?.allowTeamLeaderSubtasks !== false;
+        return isTeamLeader && subtasksAllowed;
+      });
+      
+      console.log('🔍 Team Leader can create tasks:', hasPermission, {
+        userId: user._id,
+        projects: projects.map(p => ({
+          name: p.name,
+          teamLeader: p.teamLeader?._id || p.teamLeader,
+          allowSubtasks: p.settings?.allowTeamLeaderSubtasks
+        }))
+      });
+      
+      return hasPermission;
+    }
+    
+    // Members cannot create tasks
+    return false;
+  };
+
   const loadTasks = async () => {
     try {
       setLoading(true);
@@ -117,8 +152,36 @@ const Kanban = () => {
       } else if (user?.role === 'member' || user?.role === 'team_leader') {
         // Member/Team Leader: Get their assigned tasks
         response = await axios.get('/api/team-leader/my-tasks');
-        console.log('✅ Member tasks loaded:', response.data.tasks?.length || 0);
-        setTasks(response.data.tasks || []);
+        const assignedTasks = response.data.data?.tasks || response.data.tasks || [];
+        
+        // If Team Leader, also get subtasks they created
+        let createdSubtasks = [];
+        if (user?.role === 'team_leader') {
+          try {
+            const subtasksRes = await axios.get('/api/team-leader/subtasks');
+            createdSubtasks = subtasksRes.data.data?.subtasks || subtasksRes.data.subtasks || [];
+            console.log('📋 Team Leader created subtasks:', createdSubtasks.length);
+          } catch (err) {
+            console.error('Failed to load created subtasks:', err);
+          }
+        }
+        
+        // Combine assigned tasks + created subtasks (remove duplicates)
+        const taskMap = new Map();
+        [...assignedTasks, ...createdSubtasks].forEach(task => {
+          if (task && task._id) {
+            taskMap.set(task._id, task);
+          }
+        });
+        const allTasks = Array.from(taskMap.values());
+        
+        console.log('✅ Member/TL tasks loaded:', allTasks.length);
+        console.log('📊 Tasks breakdown:', {
+          assigned: assignedTasks.length,
+          created: createdSubtasks.length,
+          total: allTasks.length
+        });
+        setTasks(allTasks);
       } else if (user?.role === 'admin' || user?.role === 'super_admin') {
         // Admin: Get all organization tasks
         response = await axios.get('/api/tasks', { params: { limit: 100 } });
@@ -158,8 +221,11 @@ const Kanban = () => {
       } else if (user?.role === 'member' || user?.role === 'team_leader') {
         // Member/TL: Get assigned projects
         response = await axios.get('/api/team-leader/projects');
-        console.log('✅ Member Projects loaded:', response.data.projects?.length || 0);
-        setProjects(response.data.projects || []);
+        // Backend returns data.data.projects (nested data object)
+        const projects = response.data.data?.projects || response.data.projects || [];
+        console.log('✅ Member Projects loaded:', projects.length);
+        console.log('📊 Projects:', projects);
+        setProjects(projects);
       } else if (user?.role === 'admin' || user?.role === 'super_admin') {
         // Admin: Get all organization projects
         response = await axios.get('/api/projects');
@@ -244,18 +310,29 @@ const Kanban = () => {
     const taskId = active.id;
     const newStatus = over.id;
 
+    console.log('🎯 Drag and drop:', { taskId, newStatus, userRole: user?.role });
+
     // Optimistic update
     setTasks(prev => prev.map(task => 
       task._id === taskId ? { ...task, status: newStatus } : task
     ));
 
     try {
+      let response;
       // Use role-specific endpoint for status update
       if (user?.role === 'pm' || user?.role === 'project_manager') {
-        await axios.put(`/api/pm/tasks/${taskId}`, { status: newStatus });
+        console.log('📤 PM updating task status via /api/pm/tasks');
+        response = await axios.put(`/api/pm/tasks/${taskId}`, { status: newStatus });
+      } else if (user?.role === 'member' || user?.role === 'team_leader') {
+        // Members and Team Leaders use generic task endpoint
+        console.log('📤 Member/TL updating task status via /api/tasks');
+        response = await axios.put(`/api/tasks/${taskId}`, { status: newStatus });
       } else {
-        await updateTaskStatus(taskId, newStatus);
+        console.log('📤 Generic update via taskService');
+        response = await updateTaskStatus(taskId, newStatus);
       }
+      
+      console.log('✅ Task status updated successfully:', response.data);
       
       // Emit socket event for real-time collaboration
       if (emitCardMoved) {
@@ -267,7 +344,8 @@ const Kanban = () => {
         });
       }
     } catch (err) {
-      console.error('Failed to update task status:', err);
+      console.error('❌ Failed to update task status:', err);
+      console.error('Error response:', err.response?.data);
       setError(err.response?.data?.message || 'Failed to update task');
       // Revert on error
       loadTasks();
@@ -338,13 +416,15 @@ const Kanban = () => {
                 <RefreshCw size={20} />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <Plus size={20} />
-                <span>New Task</span>
-              </button>
+              {canCreateTasks() && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <Plus size={20} />
+                  <span>New Task</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

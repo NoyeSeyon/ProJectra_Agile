@@ -62,11 +62,19 @@ const MemberTasks = () => {
       // Load projects
       const projectsRes = await axios.get('/api/team-leader/projects');
       const projectsData = projectsRes.data.data.projects || [];
+      console.log('📋 Loaded projects:', projectsData.map(p => ({
+        id: p._id,
+        name: p.name,
+        teamLeader: p.teamLeader?._id || p.teamLeader,
+        allowTeamLeaderSubtasks: p.settings?.allowTeamLeaderSubtasks,
+        settings: p.settings
+      })));
       setProjects(projectsData);
 
       // Load tasks assigned to this user (both main tasks and subtasks)
       const tasksRes = await axios.get('/api/team-leader/my-tasks');
       const allTasks = tasksRes.data.data.tasks || [];
+      console.log('📋 Loaded tasks:', allTasks.length);
 
       setTasks(allTasks);
     } catch (err) {
@@ -129,9 +137,23 @@ const MemberTasks = () => {
   };
 
   const canCreateSubtasks = (task) => {
-    // Check if user is team leader in this task's project
-    const project = projects.find(p => p._id === task.project);
-    if (!project || !user) return false;
+    if (!user || !task) return false;
+    
+    // Get project - either from populated task.project or from projects array
+    let project;
+    if (task.project && typeof task.project === 'object' && task.project._id) {
+      // Task has populated project
+      project = task.project;
+    } else {
+      // Task has project ID, find in projects array
+      const projectId = task.project?._id || task.project;
+      project = projects.find(p => p._id === projectId);
+    }
+    
+    if (!project) {
+      console.log('🔍 canCreateSubtasks: No project found for task', task._id);
+      return false;
+    }
     
     // Compare team leader ID with current user ID
     const teamLeaderId = project.teamLeader?._id || project.teamLeader;
@@ -140,6 +162,7 @@ const MemberTasks = () => {
     const subtasksAllowed = project?.settings?.allowTeamLeaderSubtasks !== false;
     
     console.log('🔍 canCreateSubtasks check:', {
+      taskId: task._id,
       projectId: project._id,
       projectName: project.name,
       teamLeaderId,
@@ -153,9 +176,18 @@ const MemberTasks = () => {
   };
 
   const isTeamLeaderButDisabled = (task) => {
-    // Check if user is TL but subtasks are disabled
-    const project = projects.find(p => p._id === task.project);
-    if (!project || !user) return false;
+    if (!user || !task) return false;
+    
+    // Get project - either from populated task.project or from projects array
+    let project;
+    if (task.project && typeof task.project === 'object' && task.project._id) {
+      project = task.project;
+    } else {
+      const projectId = task.project?._id || task.project;
+      project = projects.find(p => p._id === projectId);
+    }
+    
+    if (!project) return false;
     
     const teamLeaderId = project.teamLeader?._id || project.teamLeader;
     const userId = user._id || user.id;

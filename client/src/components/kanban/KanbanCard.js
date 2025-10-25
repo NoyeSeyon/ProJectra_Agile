@@ -120,10 +120,20 @@ const KanbanCard = ({ task, onEdit, onDelete, onLogTime, isDragging = false }) =
       {/* Task Details */}
       <div className="space-y-2">
         {/* Assigned To */}
-        {task.assignedTo && (
+        {(task.assignedTo || task.assignee) && (
           <div className="flex items-center text-xs text-gray-600">
-            <User size={12} className="mr-1" />
-            <span className="truncate">{task.assignedTo.firstName} {task.assignedTo.lastName}</span>
+            <User size={12} className="mr-1 flex-shrink-0" />
+            <div className="flex items-center gap-1 overflow-hidden">
+              <span className="truncate font-medium text-gray-900">
+                {task.assignedTo?.firstName || task.assignee?.firstName} {task.assignedTo?.lastName || task.assignee?.lastName}
+              </span>
+              {(task.assignedTo?.specialization || task.assignee?.specialization) && 
+               (task.assignedTo?.specialization || task.assignee?.specialization) !== 'general' && (
+                <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                  {(task.assignedTo?.specialization || task.assignee?.specialization).replace(/_/g, ' ')}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
